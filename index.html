@@ -2,91 +2,11 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>合适与相处</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=ZCOOL+QingKe+HuangYou&display=swap">
-<style>
-*,*::before,*::after{box-sizing:border-box}
-body{margin:0}
-:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-/* Layout: an arcade shelf — a short sign, then one cartridge per game. */
-:root{
-  --night:#16131f; --panel:#231d33; --ink:#f3e9dc; --dim:#a99fbd;
-  --lamp:#ffc96b; --you:#7aa7ff; --ta:#ff8fa8; --edge:#0b0910;
-  --f-pixel:"Silkscreen", ui-monospace, monospace;
-  --f-title:"ZCOOL QingKe HuangYou","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
-  --f-body:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
-  color-scheme:dark;
-}
-html,body{background:var(--night);color:var(--ink)}
-body{font-family:var(--f-body);font-size:15px;line-height:1.7;
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 48px}
-.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
-.sign small{font-family:var(--f-pixel);font-size:11px;letter-spacing:.16em;color:var(--dim)}
-h1{font-family:var(--f-title);font-weight:400;font-size:clamp(36px,9vw,56px);letter-spacing:.06em;margin:4px 0 10px;line-height:1.05;color:var(--lamp);text-shadow:4px 4px 0 var(--edge);text-wrap:balance}
-.sign p{margin:0;color:var(--dim);max-width:34em}
-.shelf{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-.cart{display:flex;flex-direction:column;background:var(--panel);border:3px solid var(--edge);box-shadow:0 0 0 3px #3a3052,6px 6px 0 3px var(--edge);color:inherit;text-decoration:none;min-width:0;transition:transform .08s}
-.cart:hover,.cart:focus-visible{transform:translate(-2px,-2px);outline:none;box-shadow:0 0 0 3px var(--lamp),8px 8px 0 3px var(--edge)}
-.cart canvas{display:block;width:100%;aspect-ratio:16/9;image-rendering:pixelated;background:#14131f;border-bottom:3px solid var(--edge)}
-.cart .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px}
-.cart small{font-family:var(--f-pixel);font-size:10px;letter-spacing:.12em;color:var(--dim)}
-.cart strong{font-family:var(--f-title);font-weight:400;font-size:26px;letter-spacing:.05em;color:var(--lamp);line-height:1.2}
-.cart p{margin:0;font-size:14px;color:var(--dim)}
-.cart .learn{font-size:13px;color:var(--ink)}
-.cart .play{font-family:var(--f-pixel);font-size:11px;color:var(--lamp);letter-spacing:.1em;margin-top:4px}
-footer{font-size:12px;color:#6d6385;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
-footer a{color:var(--dim)}
-@media (max-width:600px){.shelf{grid-template-columns:1fr}}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>她想说的话</title>
+<meta http-equiv="refresh" content="0; url=ask/">
+<script>location.replace('ask/' + location.hash)</script>
+<style>body{margin:0;background:#16131f;color:#a99fbd;font-family:system-ui,sans-serif;padding:40px 16px}a{color:#ffc96b}</style>
 </head>
-<body>
-<div class="wrap">
-  <div class="sign">
-    <small>PIXEL GAMES ABOUT LOVE</small>
-    <h1>合适与相处</h1>
-    <p>几个很短的像素小游戏，用来练习亲密关系里最难的那些事：怎么问，怎么听，以及怎么判断两个人到底合不合适。</p>
-  </div>
-
-  <div class="shelf">
-    <a class="cart" href="ask/">
-      <canvas width="96" height="54" data-art="ask" aria-hidden="true"></canvas>
-      <div class="body">
-        <strong>她想说的话</strong>
-      </div>
-    </a>
-    <a class="cart" href="fit/">
-      <canvas width="96" height="54" data-art="fit" aria-hidden="true"></canvas>
-      <div class="body">
-        <strong>合适</strong>
-      </div>
-    </a>
-  </div>
-
-  <footer><span>单个 HTML 文件，打开就能玩。</span><a href="https://github.com/CUDADA-jpg/her-words">GitHub</a></footer>
-</div>
-<script>
-// tiny pixel covers for each cartridge
-document.querySelectorAll('canvas[data-art]').forEach(cv => {
-  const g = cv.getContext('2d'), art = cv.dataset.art;
-  const px = (c, x, y, w = 1, h = 1) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
-  px('#1c1a30', 0, 0, 96, 40); px('#120f1a', 0, 40, 96, 14); px('#0b0910', 0, 39, 96, 1);
-  if (art === 'ask'){
-    px('#0b0910', 34, 6, 28, 20); px('#18233f', 35, 7, 26, 18); px('#0b0910', 47, 7, 1, 18); px('#0b0910', 35, 15, 26, 1);
-    for (let i = 0; i < 10; i++) px('#9fb4e0', 36 + (i*7)%24, 8 + (i*5)%15, 1, 2);
-    const fig = (x, hair, body) => { px(hair, x, 20, 8, 5); px('#f2c9a5', x+1, 23, 6, 4); px(body, x, 27, 8, 8); px('#2a1b2a', x+1, 35, 2, 4); px('#2a1b2a', x+5, 35, 2, 4); };
-    fig(18, '#2b2433', '#5a7bb8'); fig(70, '#3b2230', '#d9667f'); px('#3b2230', 70, 23, 8, 4);
-    px('#f3e9dc', 68, 12, 11, 7); px('#ff7a93', 70, 14, 2, 2); px('#ff7a93', 73, 14, 2, 2); px('#ff7a93', 71, 16, 3, 1);
-    px('rgba(255,201,107,.18)', 80, 4, 16, 36);
-  } else {
-    const gear = (cx, cy, R, rot, col, dark) => { for (let y = -R-2; y <= R+2; y++) for (let x = -R-2; x <= R+2; x++){ const r = Math.hypot(x, y), a = Math.atan2(y, x) - rot, s = ((a/(Math.PI*2)*8)%1+1)%1;
-      if (r <= R && r >= 2) px(r > R-1.5 ? dark : col, cx+x, cy+y); else if (r > R && r <= R+2 && s < .5) px(dark, cx+x, cy+y); } };
-    gear(40, 24, 9, 0, '#7aa7ff', '#3f5f9e'); gear(58, 24, 9, Math.PI/8, '#ff8fa8', '#a8506a');
-    [[49,18],[51,21],[47,22],[50,27]].forEach(([x,y]) => px('#ffc96b', x, y));
-  }
-});
-</script>
-</body>
+<body><a href="ask/">她想说的话</a> · <a href="fit/">合适</a></body>
 </html>

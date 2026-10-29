@@ -117,14 +117,19 @@ footer{font-size:12px;color:#6d6385;text-align:center}
 .menu:hover,.menu:focus-visible{border-color:var(--lamp);color:var(--lamp);outline:none}
 .nav a{font-family:var(--f-pixel);font-size:11px;letter-spacing:.1em;color:var(--dim);text-decoration:none}
 .nav a:hover,.nav a:focus-visible{color:var(--lamp)}
+.tab{font-family:var(--f-title);font-weight:400;font-size:clamp(26px,6vw,40px);letter-spacing:.06em;line-height:1.1;color:#6d6385;text-decoration:none}
+.tab:hover,.tab:focus-visible{color:var(--lamp);outline:none}
+.tab.on{color:var(--lamp);text-shadow:3px 3px 0 var(--edge)}
+.tools{display:flex;justify-content:flex-end}
+.tools:has(> [hidden]){display:none}
 </style>
 </head>
 <body>
 
 <div class="wrap">
   <header>
-    <h1>她想说的话</h1>
-    <div class="nav"><button class="menu" id="menuBtn" hidden>≡ 选择夜晚</button><a href="../">← 合适与相处</a></div>
+    <a class="tab on" href="../ask/" aria-current="page">她想说的话</a>
+    <a class="tab" href="../fit/">合适</a>
   </header>
 
   <div class="stage px">
@@ -135,6 +140,8 @@ footer{font-size:12px;color:#6d6385;text-align:center}
       <div class="chip">ROUND <b id="rnd">1/4</b></div>
     </div>
   </div>
+
+  <div class="tools"><button class="menu" id="menuBtn" hidden>≡ 选择夜晚</button></div>
 
   <div class="clues" id="clues" hidden></div>
 
