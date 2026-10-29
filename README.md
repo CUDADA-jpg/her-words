@@ -21,4 +21,13 @@
 
 ## 运行
 
-单个 `index.html`，无需构建，直接用浏览器打开即可。
+纯 HTML + CSS + JavaScript，无需构建，直接用浏览器打开 `index.html` 即可。
+
+```
+index.html   页面结构
+style.css    像素风样式
+story.js     三个夜晚的剧情、选项和结局
+game.js      游戏逻辑与像素画面
+```
+
+想改剧情或加一个新的夜晚，只需要编辑 `story.js`。
