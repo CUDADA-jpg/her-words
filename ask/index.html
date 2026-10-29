@@ -112,6 +112,11 @@ footer{font-size:12px;color:#6d6385;text-align:center}
   .hud .chip{font-size:9px;padding:3px 6px}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.nav{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.menu{font-family:var(--f-pixel);font-size:11px;letter-spacing:.1em;background:#2e2643;color:var(--ink);border:2px solid var(--edge);box-shadow:2px 2px 0 var(--edge);padding:4px 10px;cursor:pointer}
+.menu:hover,.menu:focus-visible{border-color:var(--lamp);color:var(--lamp);outline:none}
+.nav a{font-family:var(--f-pixel);font-size:11px;letter-spacing:.1em;color:var(--dim);text-decoration:none}
+.nav a:hover,.nav a:focus-visible{color:var(--lamp)}
 </style>
 </head>
 <body>
@@ -119,7 +124,7 @@ footer{font-size:12px;color:#6d6385;text-align:center}
 <div class="wrap">
   <header>
     <h1>她想说的话</h1>
-    <a class="sub" href="../" style="text-decoration:none">← 两个人的练习室</a>
+    <div class="nav"><button class="menu" id="menuBtn" hidden>≡ 选择夜晚</button><a href="../">← 两个人的练习室</a></div>
   </header>
 
   <div class="stage px">
@@ -300,6 +305,7 @@ function esc(s){ return s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'
 
 // ---------- HUD ----------
 function hud(){
+  $('menuBtn').hidden = S.screen === 'title';
   const on = S.screen === 'play';
   $('hud').hidden = !on; $('clues').hidden = !on;
   if (!on) return;
@@ -538,6 +544,7 @@ function boot(data){
   title();
 }
 window.claude?.hot?.ready ? window.claude.hot.ready(boot) : boot(window.claude?.hot?.data ?? {});
+$('menuBtn').onclick = () => { if (typing) { clearInterval(typing.iv); typing = null; } title(); };
 </script>
 </body>
 </html>
