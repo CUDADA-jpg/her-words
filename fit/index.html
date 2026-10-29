@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>咬合</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=ZCOOL+QingKe+HuangYou&display=swap">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+[hidden]{display:none!important}
+/* Layout: same night "game cabinet" as 她想说的话 — gear room on top, event card below. */
+:root{
+  --night:#16131f; --panel:#231d33; --ink:#f3e9dc; --dim:#a99fbd;
+  --lamp:#ffc96b; --you:#7aa7ff; --ta:#ff8fa8; --bad:#ff8a5c; --ok:#8fe3b0; --edge:#0b0910;
+  --f-pixel:"Silkscreen", ui-monospace, monospace;
+  --f-title:"ZCOOL QingKe HuangYou","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --f-body:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
+  color-scheme:dark;
+}
+html,body{background:var(--night);color:var(--ink)}
+body{font-family:var(--f-body);font-size:15px;line-height:1.65;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--f-title);font-weight:400;font-size:clamp(28px,6vw,40px);letter-spacing:.06em;margin:0;line-height:1.1;color:var(--lamp);text-shadow:3px 3px 0 var(--edge)}
+.back{font-family:var(--f-pixel);font-size:11px;letter-spacing:.12em;color:var(--dim);text-decoration:none}
+.back:hover,.back:focus-visible{color:var(--lamp)}
+.px{border:3px solid var(--edge);box-shadow:0 0 0 3px #3a3052,6px 6px 0 3px var(--edge)}
+.stage{position:relative;width:100%;aspect-ratio:16/9;max-width:100%;background:#000}
+canvas{display:block;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges}
+.hud{position:absolute;inset:8px 8px auto 8px;display:flex;justify-content:space-between;gap:6px;pointer-events:none;flex-wrap:wrap}
+.chip{background:rgba(11,9,16,.8);border:2px solid var(--edge);padding:4px 8px;display:flex;align-items:center;gap:6px;font-family:var(--f-pixel);font-size:10px;letter-spacing:.06em}
+.chip b{font-family:var(--f-body);font-size:12px;font-weight:600;letter-spacing:0;font-variant-numeric:tabular-nums}
+.meter{width:54px;height:8px;background:#3a3052;position:relative}
+.meter i{position:absolute;inset:0 auto 0 0;display:block}
+.horse{position:absolute;left:8px;bottom:8px;display:flex;gap:4px;flex-wrap:wrap;pointer-events:none}
+.horse span{background:rgba(11,9,16,.85);border:2px solid var(--bad);color:var(--bad);font-size:11px;padding:1px 6px}
+
+.box{background:var(--panel);padding:16px 18px 18px;min-height:240px;display:flex;flex-direction:column;gap:12px}
+.label{font-family:var(--f-pixel);font-size:10px;letter-spacing:.12em;color:var(--dim)}
+.ev h2{font-family:var(--f-title);font-weight:400;font-size:24px;margin:0;color:var(--lamp);letter-spacing:.05em}
+.prefs{display:grid;gap:6px}
+.pref{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;font-size:16px}
+.who{font-family:var(--f-pixel);font-size:10px;padding:2px 6px;border:2px solid var(--edge);color:var(--edge);margin-top:3px}
+.who.y{background:var(--you)} .who.t{background:var(--ta)}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+button{font:inherit;color:inherit;cursor:pointer}
+.opt{text-align:left;background:#2e2643;border:2px solid var(--edge);box-shadow:3px 3px 0 var(--edge);padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.opt:hover,.opt:focus-visible{background:#3b3157;outline:none;border-color:var(--lamp)}
+.opt:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--edge)}
+.opt b{font-weight:600;font-size:15px;display:flex;gap:8px;align-items:center}
+.opt kbd{font-family:var(--f-pixel);font-size:10px;background:var(--edge);color:var(--lamp);padding:1px 5px}
+.opt small{color:var(--dim);font-size:12px}
+.note{border-left:4px solid var(--you);background:#1b1628;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.note.bad{border-color:var(--bad)} .note.mid{border-color:var(--lamp)} .note.good{border-color:var(--ok)}
+.note p{margin:0;font-size:14px;color:var(--dim)}
+.note p strong{color:var(--ink);font-weight:600}
+.deltas{display:flex;gap:8px;flex-wrap:wrap;font-family:var(--f-pixel);font-size:10px}
+.deltas span{border:2px solid var(--edge);padding:1px 6px;background:#2e2643}
+.deltas .neg{color:var(--bad)} .deltas .pos{color:var(--ok)}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.go{background:var(--lamp);color:var(--edge);border:2px solid var(--edge);box-shadow:3px 3px 0 var(--edge);padding:8px 16px;font-weight:700;font-size:14px}
+.go.ghost{background:transparent;color:var(--ink)}
+.go:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.go:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--edge)}
+.intro p{margin:0 0 8px;color:var(--dim);font-size:14px}
+.intro p strong{color:var(--ink);font-weight:600}
+.quiz-q{font-size:18px;margin:0}
+.cands{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.cand{text-align:left;background:#2e2643;border:2px solid var(--edge);box-shadow:3px 3px 0 var(--edge);padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.cand:hover,.cand:focus-visible{border-color:var(--lamp);outline:none;background:#3b3157}
+.cand strong{font-family:var(--f-title);font-weight:400;font-size:20px;color:var(--ta)}
+.cand p{margin:0;font-size:13px;color:var(--dim)}
+.tags{display:flex;flex-wrap:wrap;gap:4px}
+.tags span{font-size:12px;border:2px solid var(--edge);padding:0 6px;background:#1b1628}
+.tags.y span{color:var(--you)} .tags.t span{color:var(--ta)}
+.alert{border:3px solid var(--bad);background:#2a1a22;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.alert h3{margin:0;font-family:var(--f-title);font-weight:400;font-size:22px;color:var(--bad);letter-spacing:.06em}
+.alert p{margin:0;font-size:14px}
+.end h2{font-family:var(--f-title);font-weight:400;font-size:30px;margin:0;color:var(--lamp);letter-spacing:.06em}
+.dims{display:grid;gap:8px}
+.dim{display:grid;grid-template-columns:5.5em 1fr 5em;gap:10px;align-items:center;font-size:13px}
+.scale{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}
+.scale div{height:18px;background:#1b1628;border:2px solid var(--edge);display:flex;align-items:center;justify-content:center;gap:2px;font-family:var(--f-pixel);font-size:8px}
+.scale i{width:8px;height:8px;display:block}
+.scale i.y{background:var(--you)} .scale i.t{background:var(--ta)}
+.dim .tax{font-family:var(--f-pixel);font-size:9px;color:var(--dim);text-align:right;font-variant-numeric:tabular-nums}
+.dim .tax.hot{color:var(--bad)}
+.chain{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chain span{border:2px solid #4a3f5e;color:#6d6385;padding:3px 8px;font-size:13px}
+.chain span.on{border-color:var(--bad);color:var(--ink);background:#2a1a22}
+.chain span.good{border-color:var(--ok);color:var(--ink);background:#17281f}
+.chain em{font-style:normal;color:#6d6385;font-family:var(--f-pixel);font-size:10px}
+.lessons{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lesson{background:#1b1628;border:2px solid #4a3f5e;padding:10px 12px;min-width:0}
+.lesson small{font-family:var(--f-pixel);font-size:9px;color:var(--lamp);letter-spacing:.1em}
+.lesson p{margin:4px 0 0;font-size:13px;color:var(--dim)}
+.lesson p strong{color:var(--ink);font-weight:600}
+footer{font-size:12px;color:#6d6385;text-align:center}
+@media (max-width:560px){
+  .cands,.lessons,.opts{grid-template-columns:1fr}
+  .dim{grid-template-columns:4.5em 1fr 4em}
+  .hud .chip{font-size:9px;padding:3px 5px}
+  .meter{width:36px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>咬合</h1>
+    <a class="back" href="../">← 两个人的练习室</a>
+  </header>
+
+  <div class="stage px">
+    <canvas id="cv" width="192" height="108" aria-label="两个齿轮，代表你和 Ta"></canvas>
+    <div class="hud" id="hud" hidden>
+      <div class="chip">你 <span class="meter"><i id="mYou" style="background:var(--you)"></i></span><b id="nYou">100</b></div>
+      <div class="chip">TA <span class="meter"><i id="mTa" style="background:var(--ta)"></i></span><b id="nTa">100</b></div>
+      <div class="chip">怨气 <span class="meter"><i id="mRes" style="background:var(--bad)"></i></span></div>
+      <div class="chip"><b id="month">1 月</b></div>
+    </div>
+    <div class="horse" id="horse"></div>
+  </div>
+
+  <section class="box px" id="box" aria-live="polite"></section>
+  <footer>数字键 1–4 选择 · 回车 继续</footer>
+</div>
+
+<script>
+// ---------- dimensions ----------
+// 每个维度 3 档：0 / 2 / 4。差距 m = |你 - Ta|。
+const DIMS = [
+  {id:'social', name:'社交充电', q:'累了一周，你怎么回血？',
+   lv:['在家安静待着','看心情，偶尔出门','和朋友出去热闹'], tag:['宅','随性','爱热闹']},
+  {id:'money', name:'金钱观', q:'钱对你来说意味着什么？',
+   lv:['安全感，先存下来','存一点花一点','体验，开心最重要'], tag:['爱存钱','平衡','享受当下']},
+  {id:'close', name:'亲密距离', q:'在一段关系里，你需要多少独处？',
+   lv:['需要很多自己的空间','在一起和独处都要','想每时每刻都在一起'], tag:['要空间','适中','很黏人']},
+  {id:'fight', name:'冲突方式', q:'吵架的时候，你通常会？',
+   lv:['先冷静，过几天再谈','缓一缓，当天谈','必须马上说清楚'], tag:['先冷静','缓一缓','马上说开']},
+  {id:'core', name:'人生方向', q:'你想过怎样的以后？', core:true,
+   lv:['回家乡，安稳过日子','稳定和机会都可以','去大城市闯一闯'], tag:['安稳','都行','想闯荡']}
+];
+const D = Object.fromEntries(DIMS.map((d, i) => [d.id, i]));
+
+// 十二个月，每月一件小事
+const MONTHS = [
+  {d:'social', title:'周末', p:['只想窝在家里看电影','出不出门都行','约了一桌朋友吃火锅']},
+  {d:'money', title:'年终奖', p:['想全部存进定期','存一半，奖励自己一半','想订一次海岛旅行']},
+  {d:'close', title:'下班以后', p:['想先自己待一小时再说话','聊几句，然后各做各的','想一进门就抱着聊今天的一切']},
+  {d:'fight', title:'一件小事吵起来了', p:['想先一个人静一静，过两天再说','想缓一个小时再谈','想现在就把话说开']},
+  {d:'social', title:'朋友的生日派对', p:['想早点回家','待到差不多就走','想玩到最后一场']},
+  {d:'core', title:'一个外地的机会', p:['想留在这里，不想折腾','可以再看看','觉得这是必须抓住的机会']},
+  {d:'money', title:'家里的沙发坏了', p:['想修一修继续用','买个性价比高的','想直接换那款最好的']},
+  {d:'close', title:'Ta 出差一周', p:['觉得每天报个平安就够了','每晚视频一会儿','希望随时都能聊天']},
+  {d:'fight', title:'Ta 说的一句话让你不舒服', p:['想自己消化，过几天再提','想睡一觉，明天再说','想当场告诉 Ta']},
+  {d:'social', title:'国庆长假', p:['想在家睡到自然醒','短途走走就好','想报团连去三个城市']},
+  {d:'money', title:'朋友开口借钱', p:['觉得不能借','借一小部分','觉得朋友有难当然要帮']},
+  {d:'core', title:'该决定在哪里定居了', p:['想回家乡买房','哪里都可以','想留在一线城市拼几年']}
+];
+const MONTHS_CN = ['1 月','2 月','3 月','4 月','5 月','6 月','7 月','8 月','9 月','10 月','11 月','12 月'];
+
+const HORSES = {
+  crit:{name:'批评',text:'Ta 开始说"你总是……""你从来不……"。抱怨针对的是一件事，批评针对的是一个人。'},
+  def:{name:'防御',text:'每次被说，第一反应都是"那你呢？"。对话变成了攻防战，没有人在听。'},
+  wall:{name:'冷战',text:'吵架时，开始有人沉默、走开。不是不在乎，是累到已经没力气回应了。'},
+  cont:{name:'蔑视',text:'翻白眼、冷笑、"就你这样"。关系研究者 Gottman 发现，蔑视是预测分手最强的信号之一。'}
+};
+const ENDS = {
+  exhaust:{t:'累到走不动了',s:'没有哪一次争吵特别严重。只是每一天都要多花一点力气，直到有一天，谁也没力气了。'},
+  resent:{t:'被怨气压垮',s:'那些没说出口的委屈越攒越多。最后分开的理由，可能只是一件很小的事。'},
+  apart:{t:'同路不同向',s:'你们相处得很舒服，几乎没吵过架。可是到了决定未来的时候，才发现彼此想去的地方不一样。'},
+  lost:{t:'留下了，但不像自己',s:'你们还在一起。只是为了留下，你放弃了自己最想要的生活。这份代价，以后还会被想起。'},
+  easy:{t:'越走越轻松',s:'有差异，但付得起；会吵架，但吵得开。这一年，你们越来越省力。'},
+  work:{t:'还在磨合',s:'有累的时候，也有默契的时候。你们还在一起，也还在学怎么和对方的不同相处。'},
+  tired:{t:'很累，但还撑着',s:'你们熬过了这一年。只是回头看，大部分力气都花在了"磨"上，心里也攒下了不少委屈。'}
+};
+
+// ---------- state ----------
+let S;
+function fresh(keep){
+  S = Object.assign({screen:'title', me:[2,2,2,2,2], q:0, cands:[], ta:null, ci:null, month:0,
+    you:100, them:100, resent:0, conflict:0, backlog:0, gridlock:0, gaveCore:false,
+    acc:[0,0,0,0,0], ins:[0,0,0,0,0], avoid:0, neg:0, spent:[0,0,0,0,0], horse:[], step:'event', end:null, sync:0}, keep || {});
+}
+fresh();
+const $ = id => document.getElementById(id);
+const box = $('box');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const clamp = v => Math.max(0, Math.min(100, Math.round(v)));
+const shuffle = a => { a = a.slice(); for (let i = a.length-1; i > 0; i--) { const j = Math.random()*(i+1)|0; [a[i],a[j]] = [a[j],a[i]]; } return a; };
+const gap = d => Math.abs(S.me[d] - S.ta[d]);
+let fx = {mode:'idle', t:0}; // drives the gears: idle / grind / mesh
+
+function hud(){
+  const on = S.screen === 'play';
+  $('hud').hidden = !on;
+  $('mYou').style.width = S.you + '%'; $('nYou').textContent = S.you;
+  $('mTa').style.width = S.them + '%'; $('nTa').textContent = S.them;
+  $('mRes').style.width = Math.min(100, S.resent / 80 * 100) + '%';
+  $('month').textContent = MONTHS_CN[Math.min(11, S.month)];
+  $('horse').innerHTML = on ? S.horse.map(h => `<span>${HORSES[h].name}</span>`).join('') : '';
+}
+
+// ---------- screens ----------
+function title(){
+  S.screen = 'title'; hud();
+  box.innerHTML = `<div class="intro">
+    <p>两个人在一起，像两个齿轮。</p>
+    <p><strong>合的地方，齿轮自己就会转；不合的地方，每转一次都要多花一点力气。</strong>这份力气不是一次付清的，是每天都在付的"摩擦税"。</p>
+    <p>先回答 5 个关于你自己的问题，再从三个人里选一个。然后和 Ta 过完一年，看看你们的能量会去哪里。</p>
+  </div>
+  <div class="row"><button class="go" id="go">开始 ▶</button></div>`;
+  $('go').onclick = () => { S.screen = 'quiz'; S.q = 0; quiz(); };
+}
+
+function quiz(){
+  const d = DIMS[S.q];
+  box.innerHTML = `<div class="label">关于你 · ${S.q+1}/5 · ${esc(d.name)}</div>
+    <p class="quiz-q">${esc(d.q)}</p>
+    <div class="opts" style="grid-template-columns:1fr">${d.lv.map((l, i) => `<button class="opt" data-v="${i*2}"><b><kbd>${i+1}</kbd>${esc(l)}</b></button>`).join('')}</div>`;
+  box.querySelectorAll('.opt').forEach(b => b.onclick = () => {
+    S.me[S.q] = +b.dataset.v;
+    S.q++;
+    S.q < 5 ? quiz() : pick();
+  });
+}
+
+function opp(v){ return v === 2 ? (Math.random() < .5 ? 0 : 4) : 4 - v; }
+function shift(v){ return v <= 2 ? v + 2 : v - 2; }
+function pick(){
+  S.screen = 'pick';
+  if (!S.cands.length){
+    const m = S.me;
+    S.cands = shuffle([
+      {name:'很像你的 Ta', kind:'alike', p:'你们喜欢一样的周末、一样的吃饭节奏，连吵架的方式都一样。聊天从不冷场。',
+       ta:[m[0], m[1], m[2], m[3], opp(m[4])]},
+      {name:'不太一样的 Ta', kind:'diff', p:'Ta 和你不太一样，你往东时 Ta 偶尔想往西。但和 Ta 在一起，你很放松。',
+       ta:[opp(m[0]), shift(m[1]), m[2], m[3], m[4]]},
+      {name:'让你心动的 Ta', kind:'spark', p:'Ta 和你完全不同，第一次见面你就被吸引了。Ta 身上有你没有的一切。',
+       ta:m.map(opp)}
+    ]);
+  }
+  box.innerHTML = `<div class="label">你</div>
+    <div class="tags y">${S.me.map((v, i) => `<span>${esc(DIMS[i].tag[v/2])}</span>`).join('')}</div>
+    <div class="label">选一个人，和 Ta 过一年</div>
+    <div class="cands">${S.cands.map((c, i) => `<button class="cand" data-i="${i}">
+      <strong>${esc(c.name)}</strong><p>${esc(c.p)}</p>
+      <div class="tags t">${c.ta.map((v, j) => `<span>${esc(DIMS[j].tag[v/2])}</span>`).join('')}</div>
+    </button>`).join('')}</div>`;
+  box.querySelectorAll('.cand').forEach(b => b.onclick = () => begin(+b.dataset.i));
+}
+
+function begin(i){
+  fresh({me:S.me, cands:S.cands, ci:i, ta:S.cands[i].ta.slice(), screen:'play'});
+  hud(); event();
+}
+
+function event(){
+  S.step = 'event'; hud();
+  const ev = MONTHS[S.month], d = D[ev.d], m = gap(d);
+  fx = {mode: m ? 'grind' : 'mesh', t:0, m};
+  const head = `<div class="ev"><div class="label">${MONTHS_CN[S.month]} · ${esc(DIMS[d].name)}${DIMS[d].core ? ' · 核心' : ''}</div><h2>${esc(ev.title)}</h2></div>
+    <div class="prefs">
+      <div class="pref"><span class="who y">你</span><span>${esc(ev.p[S.me[d]/2])}</span></div>
+      <div class="pref"><span class="who t">TA</span><span>${esc(ev.p[S.ta[d]/2])}</span></div>
+    </div>`;
+  if (!m){
+    S.you = clamp(S.you + 6); S.them = clamp(S.them + 6); S.sync++;
+    box.innerHTML = head + note('good', [
+      `<strong>齿轮自己转起来了。</strong>这件事上你们天然合拍，不需要谁让步，也不需要商量。`,
+      `"合适"最直接的样子就是省力：同样一件事，在别的关系里要谈，在这里不用。`
+    ], {you:6, them:6}) + nextBtn();
+    hud(); bindNext(tick); return;
+  }
+  const acts = [
+    {k:'acc', b:'好，听你的。', s:'迁就 Ta'},
+    {k:'ins', b:'这次按我的来。', s:'坚持自己'},
+    {k:'neg', b:'我们各退一步？', s:'商量折中'},
+    {k:'avoid', b:'……随便吧，以后再说。', s:'先不谈'}
+  ];
+  box.innerHTML = head + `<div class="opts">${acts.map((a, i) => `<button class="opt" data-k="${a.k}"><b><kbd>${i+1}</kbd>${esc(a.b)}</b><small>${a.s}</small></button>`).join('')}</div>`;
+  box.querySelectorAll('.opt').forEach(b => b.onclick = () => act(b.dataset.k, d, m));
+}
+
+function act(k, d, m){
+  const core = !!DIMS[d].core, mF = gap(D.fight);
+  const before = {you:S.you, them:S.them, resent:S.resent};
+  let cls = 'mid', lines = [];
+  if (k === 'acc'){
+    S.acc[d]++;
+    const cost = 6*m + (S.acc[d]-1)*3;
+    S.you = clamp(S.you - cost); S.spent[d] += cost;
+    S.resent += (core ? 4 : 2) * m + (S.acc[d]-1) * 3;
+    if (core && m >= 2) S.gaveCore = true;
+    if (core) { cls = 'bad'; lines.push(`<strong>你放弃了自己想要的生活方向。</strong>这不是一次让步，是把以后的每一天都让了出去。`); }
+    else if (S.acc[d] >= 2) { cls = 'bad'; lines.push(`<strong>这是你第 ${S.acc[d]} 次在「${DIMS[d].name}」上让步了。</strong>每次让步都比上次更贵一点。习惯性的迁就，会慢慢变成"我在这段关系里不见了"。`); }
+    else lines.push(`<strong>偶尔为对方让步，是爱。</strong>但这份代价不是一次付清的：同样的事下个月还会来，你还要再付一次。`);
+  }
+  if (k === 'ins'){
+    S.ins[d]++;
+    const cost = 6*m;
+    S.them = clamp(S.them - cost); S.spent[d] += cost;
+    S.conflict++; S.resent += 2*m;
+    if (core && m >= 2) S.gridlock++;
+    cls = 'bad';
+    lines.push(`<strong>你没付出，但 Ta 付出了。</strong>关系里的能量是两个人的总和，一方赢了，另一方的电量就少了。`);
+    if (S.conflict >= 2) lines.push(`你们已经为这类事起过 ${S.conflict} 次冲突。冲突本身不可怕，可怕的是它开始有固定的剧本。`);
+  }
+  if (k === 'neg'){
+    S.neg++;
+    if (core && m >= 2){
+      const cost = 4*m;
+      S.you = clamp(S.you - cost); S.them = clamp(S.them - cost); S.spent[d] += cost*2;
+      S.resent += 2*m; S.gridlock++;
+      cls = 'bad';
+      lines.push(`<strong>这件事没法各退一步。</strong>一半留在家乡、一半去大城市，等于两个人都没过上想要的生活。`);
+      lines.push(`这类差异叫"核心差异"：它不是靠沟通技巧能解决的，只能靠两个人本来就想去同一个地方。`);
+    } else {
+      const cost = 2*m + mF;
+      S.you = clamp(S.you - cost); S.them = clamp(S.them - cost); S.spent[d] += cost*2;
+      S.resent = Math.max(0, S.resent - 2);
+      cls = 'good';
+      lines.push(`<strong>商量是最健康的方式：两个人各付一点，没有人消失。</strong>但它也要力气，差异越大，每次商量越累。`);
+      if (mF >= 2) lines.push(`而且你们处理冲突的方式不一样：一个想马上说开，一个想先冷静。连"商量"这件事本身，都要多花一份力气。`);
+    }
+  }
+  if (k === 'avoid'){
+    S.avoid++; S.backlog += m;
+    if (core && m >= 2) S.gridlock++;
+    lines.push(`<strong>今天谁都没付出，但账记下了。</strong>积压的事不会消失，每个月都会悄悄收一点利息（现在积压：${S.backlog}）。`);
+  }
+  S.resent = Math.min(100, S.resent);
+  const dl = {you:S.you - before.you, them:S.them - before.them, resent:S.resent - before.resent};
+  box.innerHTML = box.querySelector('.ev').outerHTML + note(cls, lines, dl) + nextBtn();
+  fx = {mode: k === 'neg' && cls === 'good' ? 'mesh' : 'grind', t:0, m};
+  hud(); bindNext(tick);
+}
+
+function note(cls, lines, dl){
+  const fmt = (lab, v, invert) => v ? `<span class="${(invert ? v < 0 : v > 0) ? 'pos' : 'neg'}">${lab} ${v > 0 ? '+' : ''}${v}</span>` : '';
+  const ds = [fmt('你', dl.you), fmt('TA', dl.them), fmt('怨气', dl.resent || 0, true)].join('');
+  return `<div class="note ${cls}">${ds ? `<div class="deltas">${ds}</div>` : ''}${lines.map(l => `<p>${l}</p>`).join('')}</div>`;
+}
+function nextBtn(){ return `<div class="row"><button class="go" id="next">继续 ▶</button></div>`; }
+function bindNext(fn){ const b = $('next'); b.onclick = fn; b.focus({preventScroll:true}); }
+
+// 每月结算：自然回血，减去积压的利息和"四骑士"的消耗
+function tick(){
+  const drain = S.backlog + S.horse.length * 2;
+  S.you = clamp(S.you + 4 - drain); S.them = clamp(S.them + 4 - drain);
+  const add = [];
+  const has = h => S.horse.includes(h);
+  if (!has('crit') && S.conflict >= 2) add.push('crit');
+  if (!has('def') && S.conflict >= 4) add.push('def');
+  if (!has('wall') && (S.backlog >= 4 || Math.min(S.you, S.them) < 35)) add.push('wall');
+  if (!has('cont') && S.resent >= 40) add.push('cont');
+  S.horse.push(...add);
+  hud();
+  const after = () => {
+    if (S.you <= 0 || S.them <= 0) return ending('exhaust');
+    if (S.resent >= 80) return ending('resent');
+    S.month++;
+    if (S.month >= 12) return finish();
+    event();
+  };
+  if (!add.length) return after();
+  fx = {mode:'grind', t:0, m:4};
+  box.innerHTML = add.map(h => `<div class="alert"><div class="label" style="color:var(--bad)">关系里出现了新的东西</div><h3>${HORSES[h].name}</h3><p>${HORSES[h].text}</p></div>`).join('')
+    + `<p style="margin:0;font-size:13px;color:var(--dim)">从下个月起，它每个月都会额外消耗你们两个人的能量。</p>` + nextBtn();
+  bindNext(after);
+}
+
+function finish(){
+  const avg = (S.you + S.them) / 2, mc = gap(D.core);
+  if (S.gaveCore) return ending('lost');
+  if (mc >= 2 && S.gridlock) return ending('apart');
+  if (S.resent >= 40 || S.horse.length >= 2) return ending('tired');
+  ending(avg >= 60 ? 'easy' : avg >= 30 ? 'work' : 'tired');
+}
+
+function ending(kind){
+  S.screen = 'end'; S.end = kind; hud();
+  fx = {mode: ['easy','work'].includes(kind) ? 'mesh' : 'stop', t:0};
+  const e = ENDS[kind], c = S.cands[S.ci];
+  const maxTax = Math.max(1, ...S.spent);
+  const top = S.spent.indexOf(Math.max(...S.spent));
+  const accT = S.acc.reduce((a, b) => a + b, 0), insT = S.ins.reduce((a, b) => a + b, 0);
+  const broke = ['exhaust','resent','apart'].includes(kind);
+  const chain = [
+    ['差异', S.ta.some((v, i) => v !== S.me[i])],
+    ['每次都要付摩擦税', S.spent.some(x => x > 0)],
+    [`迁就 ×${accT} → 自我消失`, accT >= 2],
+    [`坚持 ×${insT} → 冲突`, insT >= 2],
+    [`不谈 ×${S.avoid} → 积压`, S.avoid >= 1],
+    ['四骑士', S.horse.length > 0],
+    [broke ? '分开' : '还在一起', broke]
+  ];
+  box.innerHTML = `<div class="end" style="display:flex;flex-direction:column;gap:16px">
+    <div><div class="label">一年以后 · 你选了${esc(c.name)}</div><h2>${esc(e.t)}</h2>
+      <p style="margin:4px 0 0;color:var(--dim);font-size:14px">${esc(e.s)}</p></div>
+
+    <div><div class="label" style="margin-bottom:8px">你们的齿轮 · <span style="color:var(--you)">■ 你</span> <span style="color:var(--ta)">■ TA</span> · 右侧是这一年在这件事上花掉的能量</div>
+      <div class="dims">${DIMS.map((d, i) => `<div class="dim"><span>${esc(d.name)}</span>
+        <div class="scale">${[0,2,4].map(v => `<div title="${esc(d.tag[v/2])}">${S.me[i] === v ? '<i class="y"></i>' : ''}${S.ta[i] === v ? '<i class="t"></i>' : ''}</div>`).join('')}</div>
+        <span class="tax ${S.spent[i] === maxTax && S.spent[i] > 0 ? 'hot' : ''}">${S.spent[i] ? '−' + S.spent[i] : (gap(i) ? '—' : '合拍')}</span></div>`).join('')}</div>
+      ${S.spent[top] > 0 ? `<p style="margin:8px 0 0;font-size:13px;color:var(--dim)">最耗你们的是「${esc(DIMS[top].name)}」。${DIMS[top].core ? '它是核心差异，只靠沟通很难解决。' : '它每个月都会回来，每次都要再付一次。'}</p>` : ''}
+    </div>
+
+    <div><div class="label" style="margin-bottom:8px">这一年是怎么走到这里的</div>
+      <div class="chain">${chain.map(([t, on], i) => `${i ? '<em>→</em>' : ''}<span class="${on ? (i === chain.length-1 && !broke ? 'good' : 'on') : ''}">${esc(t)}</span>`).join('')}</div>
+      ${S.sync ? `<p style="margin:8px 0 0;font-size:13px;color:var(--dim)">也有 ${S.sync} 个月，齿轮是自己转起来的。那几个月你们什么都没做，能量反而回升了。</p>` : ''}
+    </div>
+
+    <div><div class="label" style="margin-bottom:8px">所以，合适到底是什么</div>
+      <div class="lessons">
+        <div class="lesson"><small>01 · 核心方向一致</small><p>在哪里生活、要不要孩子、想过怎样的人生。<strong>这些没法各退一步</strong>，再会沟通也只能让一个人放弃。</p></div>
+        <div class="lesson"><small>02 · 摩擦税付得起</small><p>差异不可怕。<strong>可怕的是每天都要付，而且越付越贵。</strong>日常里合拍的地方越多，你们越有余力去处理不合的地方。</p></div>
+        <div class="lesson"><small>03 · 吵得开，修得好</small><p>冲突方式本身就是一项契合度。<strong>能吵完、能说清、能和好</strong>，比从不吵架更重要。</p></div>
+        <div class="lesson"><small>04 · 差异被欣赏</small><p>同样是 Ta 爱热闹，"Ta 带我认识了新朋友"和"又要陪 Ta 出门"，是两种关系。<strong>前者是互补，后者是忍受。</strong></p></div>
+      </div>
+    </div>
+
+    <div class="row"><button class="go ghost" id="redo">重新回答问题</button><button class="go ghost" id="other">换一个 Ta</button><button class="go" id="again">和 Ta 重来一年</button></div>
+  </div>`;
+  $('again').onclick = () => begin(S.ci);
+  $('other').onclick = () => { S.screen = 'pick'; pick(); hud(); };
+  $('redo').onclick = () => { fresh(); S.screen = 'quiz'; quiz(); hud(); };
+}
+
+addEventListener('keydown', e => {
+  if (/^[1-4]$/.test(e.key)) { const b = box.querySelectorAll('.opt,.cand')[+e.key - 1]; if (b) b.click(); }
+});
+
+// ---------- pixel scene ----------
+const cv = $('cv'), g = cv.getContext('2d');
+const W = 192, H = 108;
+const HER = ['...hhhhhh...','..hhhhhhhh..','.hhhhhhhhhh.','.hhsssssshh.','hhsesssseshh','hhspsssspshh','hhsssmmssshh','hh.ssssss.hh','hh...ss...hh','h..dddddd..h','..dddddddd..','.dddddddddd.','.sdddddddds.','.sdddddddds.','..dddddddd..','..dddddddd..','.dddddddddd.','.dddddddddd.','...ss..ss...','...ss..ss...','...bb..bb...'];
+const HIM = ['............','...HHHHHH...','..HHHHHHHH..','..HssssssH..','..sesssses..','..ssssssss..','..sssmmsss..','...ssssss...','.....ss.....','..cccccccc..','.cccccccccc.','.cccccccccc.','.sccccccccs.','.sccccccccs.','..cccccccc..','..qqqqqqqq..','..qqq..qqq..','..qqq..qqq..','..qq....qq..','..qq....qq..','..bb....bb..'];
+const PAL = {h:'#3b2230',s:'#f2c9a5',e:'#2a1b2a',m:'#c4606e',p:'#f0a0a0',d:'#d9667f',b:'#2a1b2a',H:'#2b2433',c:'#5a7bb8',q:'#33405e'};
+function sprite(rows, x, y){ rows.forEach((r, j) => [...r].forEach((ch, i) => { if (ch !== '.' && PAL[ch]) { g.fillStyle = PAL[ch]; g.fillRect(x + i*2, y + j*2, 2, 2); } })); }
+function mix(a, b, t){ const p = s => [1,3,5].map(i => parseInt(s.substr(i,2),16)); const A = p(a), B = p(b); return `rgb(${A.map((v,i) => Math.round(v + (B[i]-v)*t)).join(',')})`; }
+
+// 像素齿轮：teeth 个齿，rot 为角度
+function gear(cx, cy, R, teeth, rot, col, dark){
+  for (let y = -R-3; y <= R+3; y++) for (let x = -R-3; x <= R+3; x++){
+    const r = Math.hypot(x, y); if (r > R + 3) continue;
+    const a = Math.atan2(y, x) - rot;
+    const seg = ((a / (Math.PI*2) * teeth) % 1 + 1) % 1;
+    let c = null;
+    if (r <= R) c = r < 3 ? null : (r > R - 2 || (r < 6 && r >= 4) ? dark : col);
+    else if (seg < .5) c = dark;
+    if (c){ g.fillStyle = c; g.fillRect(Math.round(cx + x), Math.round(cy + y), 1, 1); }
+  }
+}
+const sparks = [], hearts = [];
+let rot = 0, t0 = 0, warm = .4, jitter = 0;
+function frame(ts){
+  const dt = Math.min(50, ts - t0); t0 = ts; fx.t += dt;
+  const energy = S.screen === 'play' || S.screen === 'end' ? (S.you + S.them) / 200 : .7;
+  warm += (energy - warm) * .03;
+  // room
+  g.fillStyle = mix('#14131f', '#33263a', warm); g.fillRect(0, 0, W, H);
+  g.fillStyle = mix('#1c1a2c', '#3e2d40', warm); for (let x = 0; x < W; x += 12) g.fillRect(x, 0, 1, 80);
+  g.fillStyle = mix('#100e18', '#261b22', warm); g.fillRect(0, 80, W, 28);
+  g.fillStyle = '#0b0910'; g.fillRect(0, 79, W, 2);
+  // gears
+  const grinding = fx.mode === 'grind' && fx.t < 1800;
+  const stopped = fx.mode === 'stop';
+  const speed = stopped ? 0 : grinding ? .0002 : .0006 + warm * .0012;
+  rot += speed * dt;
+  jitter = grinding ? (Math.random() - .5) * (1 + (fx.m || 1) * .5) : 0;
+  const ax = 82, bx = 110, gy = 40;
+  g.fillStyle = '#0b0910'; g.fillRect(ax - 1, gy, 2, 40); g.fillRect(bx - 1, gy, 2, 40);
+  gear(ax + jitter, gy, 12, 10, rot, '#7aa7ff', '#3f5f9e');
+  gear(bx - jitter, gy, 12, 10, -rot + Math.PI/10, '#ff8fa8', '#a8506a');
+  if (grinding && Math.random() < .5) sparks.push({x:96, y:gy + (Math.random()-.5)*6, vx:(Math.random()-.5)*.08, vy:-Math.random()*.08 - .02, l:500});
+  if (fx.mode === 'mesh' && fx.t < 1500 && Math.random() < .06) hearts.push({x:90 + Math.random()*12, y:gy - 14, l:1200});
+  g.fillStyle = '#ffc96b';
+  for (let i = sparks.length - 1; i >= 0; i--){ const s = sparks[i]; s.x += s.vx*dt; s.y += s.vy*dt; s.vy += .0003*dt; s.l -= dt; if (s.l <= 0) sparks.splice(i, 1); else g.fillRect(s.x|0, s.y|0, 1, 1); }
+  g.fillStyle = '#ff7a93';
+  for (let i = hearts.length - 1; i >= 0; i--){ const h = hearts[i]; h.y -= .01*dt; h.l -= dt; if (h.l <= 0) { hearts.splice(i, 1); continue; }
+    const x = h.x|0, y = h.y|0; g.fillRect(x, y, 1, 1); g.fillRect(x+2, y, 1, 1); g.fillRect(x, y+1, 3, 1); g.fillRect(x+1, y+2, 1, 1); }
+  // people: closer when energy is high
+  const gapPx = Math.round((1 - warm) * 18);
+  sprite(HIM, 38 - gapPx, 38);
+  sprite(HER, 130 + gapPx, 38);
+  g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(40 - gapPx, 80, 20, 2); g.fillRect(132 + gapPx, 80, 20, 2);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+title();
+</script>
+</body>
+</html>
